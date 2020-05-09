@@ -1,0 +1,19 @@
+1
+1
+2.
+50
+1.0
+0.02
+0
+20
+50000
+
+  ReadInput >> equilibration // 0 the initial configuration is T=infty, else is an equilibrated configuration
+  ReadInput >> restart //0 the initial configuration is T=infty, else the simulation restart from the final configuration reached in the previous run
+  ReadInput >> temp;
+  ReadInput >> nspin;
+  ReadInput >> J;
+  ReadInput >> h;
+  ReadInput >> metro;
+  ReadInput >> nblk;
+  ReadInput >> nstep;
