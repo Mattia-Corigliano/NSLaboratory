@@ -18,9 +18,16 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 using namespace std;
 
 int main(){ 
-  Input();             //Inizialization
-  int nconf = 1, measurement_step=10, measurements=nstep/10, nblocks=50, i=0, j=0, measurements_per_block = measurements/nblocks;
+  Input(); //Inizialization         
+  int nconf = 1, measurement_step=10, measurements=nstep/measurement_step, nblocks=20, i=0, j=0, measurements_per_block = measurements/nblocks;
   vector <double> epot(nblocks, 0.), ekin(nblocks, 0.), etot(nblocks, 0.), temp(nblocks, 0.);
+  //initialize gdir matrix  
+  double gdir[nbins][nblocks];
+  for(int i=0; i<nbins; i++){
+  	for(int k=0; k<nblocks; k++)
+		gdir[i][k] = 0.;
+  }
+  ofstream output("output.gofr.0");
   for(int istep=1; istep <= nstep; ++istep){
      Move();           //Move particles with Verlet algorithm
      if(istep%iprint == 0) cout << "Number of time-steps: " << istep << endl;
@@ -30,24 +37,34 @@ int main(){
     	ekin[i]=ekin[i] + stima_kin/measurements_per_block;
         temp[i]=temp[i] + stima_temp/measurements_per_block;
         etot[i]=etot[i] + stima_etot/measurements_per_block;
-	j = j+1;
+	for(int bin=0; bin<nbins; bin++)	
+		gdir[bin][i]=gdir[bin][i] + g_r[bin]/measurements_per_block;
+	j = j+1; //update measurements counter
 	if(j==measurements_per_block){
-		i=i+1;
+		for(int bin=0; bin<nbins; bin++){
+			double r = bin*bin_size;	
+			output << i+1 << setw(15) << r << setw(15) << gdir[bin][i] << endl;
+		}
+		i=i+1; //update block counter
 		j=0;
 	}
-        ConfXYZ(nconf);//Write actual configuration in XYZ format //Commented to avoid "filesystem full"! 
+        //ConfXYZ(nconf);//Write actual configuration in XYZ format //Commented to avoid "filesystem full"! 
         nconf += 1;
      }
   }
   ConfFinal();       //Write last two configurations
 
   //blocking method
-  ofstream outfile, outfile2, outfile3, outfile4;
-  outfile.open("ARGONgas_ave_epot.out");
-  outfile2.open("ARGONgas_ave_ekin.out");
-  outfile3.open("ARGONgas_ave_etot.out");
-  outfile4.open("ARGONgas_ave_temp.out");
+  cout << endl;
+  cout << "Blocking Method" << endl << endl;
+  ofstream outfile, outfile2, outfile3, outfile4, outfile5;
+  outfile.open("ave_epot.out");
+  outfile2.open("ave_ekin.out");
+  outfile3.open("ave_etot.out");
+  outfile4.open("ave_temp.out");
+  outfile5.open("ave_gdir.out");
   for(int block = 0; block<nblocks; block++){
+	cout << block+1 << endl;
 	double ave_epot=0., ave2_epot=0., ave_ekin=0., ave2_ekin=0., ave_etot=0., ave2_etot=0., ave_temp=0., ave2_temp=0.;
 	double error_epot=0., error_ekin=0., error_etot =0., error_temp=0.;
 	for(int k=0; k<block+1; k++){
@@ -76,15 +93,32 @@ int main(){
 	outfile2 << setw(15) << (block+1)*measurements_per_block << setw(15) << ave_ekin << setw(15) << error_ekin << endl;
 	outfile3 << setw(15) << (block+1)*measurements_per_block << setw(15) << ave_etot << setw(15) << error_etot << endl;
 	outfile4 << setw(15) << (block+1)*measurements_per_block << setw(15) << ave_temp << setw(15) << error_temp << endl;
-  }
+	for(int bin=0; bin < nbins; bin++){
+		double r = bin*bin_size;	
+		double ave_gdir=0., ave2_gdir=0.;
+        	double error_gdir=0.;
+		for(int k=0; k<block+1; k++){
+			ave_gdir = ave_gdir + gdir[bin][k]/(block+1);
+			ave2_gdir = ave2_gdir + gdir[bin][k]*gdir[bin][k]/(block+1);
+  		}
+		if(block+1==1)
+			error_gdir = 0.;
+		else
+			error_gdir = sqrt((ave2_gdir-ave_gdir*ave_gdir)/block);
 
+		outfile5 << setw(15) << (block+1)<< setw(15) << r << setw(15) << ave_gdir << setw(15) << error_gdir << endl;
+	}
+  }
+  
   outfile.close();
   outfile2.close();
   outfile3.close();
   outfile4.close();
+  outfile5.close();
   return 0;
 }
 
+//*******************************************************************************************************************************
 void Input(void){ //Prepare all stuff for the simulation
   ifstream ReadInput,ReadConf, ReadConf2;
   double ep, ek, pr, et, vir;
@@ -98,13 +132,17 @@ void Input(void){ //Prepare all stuff for the simulation
   seed = 1;    //Set seed for random numbers
   srand(seed); //Initialize random number generator
   
-  ReadInput.open("input.Argon_gas"); //Read input
+  ReadInput.open("input.dat"); //Read input
   
   ReadInput >> bol;
-  if(bol==1) improved_mode = true;
-  else improved_mode = false;
-
-  cout << "The program runs in the improved mode: " << improved_mode << endl << endl;
+  if(bol==1) {
+  	improved_mode = true;
+	cout << "The program runs in the improved mode: True" << endl << endl;
+  }
+  else {
+  	improved_mode = false;
+	cout << "The program runs in the improved mode: False" << endl << endl;
+  }
 
   ReadInput >> temp;
   cout << "Temperature = " << temp << endl;
@@ -118,6 +156,7 @@ void Input(void){ //Prepare all stuff for the simulation
   cout << "Volume of the simulation box = " << vol << endl;
   box = pow(vol,1.0/3.0);
   cout << "Edge of the simulation box = " << box << endl;
+  bin_size = (box/2.0)/(double)nbins;
 
   ReadInput >> rcut;
   ReadInput >> delta;
@@ -129,12 +168,14 @@ void Input(void){ //Prepare all stuff for the simulation
   cout << "Number of steps = " << nstep << endl << endl;
   ReadInput.close();
 
+/*
 //Prepare array for measurements
   iv = 0; //Potential energy
   ik = 1; //Kinetic energy
   ie = 2; //Total energy
   it = 3; //Temperature
   n_props = 4; //Number of observables
+*/
 
 //Read initial configuration
   cout << "Read initial configuration from file config.0 " << endl;
@@ -224,7 +265,6 @@ void Input(void){ //Prepare all stuff for the simulation
      		yold[i] = Pbc(y[i] - vy[i] * delta);
      		zold[i] = Pbc(z[i] - vz[i] * delta);
 	}
-	
    }
    return;
 }
@@ -282,35 +322,43 @@ double Force(int ip, int idir){ //Compute forces as -Grad_ip V(r)
 }
 
 void Measure(){ //Properties measurement
-  int bin;
   double v, t, vij;
   double dx, dy, dz, dr;
+ 
   ofstream Epot, Ekin, Etot, Temp;
-
   Epot.open("output_epot.dat",ios::app);
   Ekin.open("output_ekin.dat",ios::app);
   Temp.open("output_temp.dat",ios::app);
   Etot.open("output_etot.dat",ios::app);
+  //Gdir.open("output_gdir.dat",ios::app);
 
   v = 0.0; //reset observables
   t = 0.0;
+  for (int k=0; k<nbins; ++k) g_r[k]=0.0;
 
-//cycle over pairs of particles
   for (int i=0; i<npart-1; ++i){
     for (int j=i+1; j<npart; ++j){
 
      dx = Pbc( xold[i] - xold[j] ); // here I use old configurations [old = r(t)]
      dy = Pbc( yold[i] - yold[j] ); // to be compatible with EKin which uses v(t)
      dz = Pbc( zold[i] - zold[j] ); // => EPot should be computed with r(t)
-
      dr = dx*dx + dy*dy + dz*dz;
      dr = sqrt(dr);
 
+     //Potential energy
      if(dr < rcut){
        vij = 4.0/pow(dr,12) - 4.0/pow(dr,6);
-
-//Potential energy
        v += vij;
+     }
+     
+     //g(r) radial distribution function
+     //update of the histogram of g(r)
+     for(int k=0;k<nbins;k++){
+        double r = k*bin_size;
+    	double vol = 4.*M_PI*(pow(r+bin_size, 3.)-pow(r, 3.))/3.;
+     	if(dr>=k*bin_size && dr< (k+1)*bin_size)
+        	g_r[k]=g_r[k] + 2./(vol*rho*npart);
+        //Gdir << r << setw(15) << g_r[k] << endl;
      }
     }          
   }
@@ -318,22 +366,23 @@ void Measure(){ //Properties measurement
 //Kinetic energy
   for (int i=0; i<npart; ++i) t += 0.5 * (vx[i]*vx[i] + vy[i]*vy[i] + vz[i]*vz[i]);
    
-    stima_pot = v/(double)npart; //Potential energy per particle
-    stima_kin = t/(double)npart; //Kinetic energy per particle
-    stima_temp = (2.0 / 3.0) * t/(double)npart; //Temperature
-    stima_etot = (t+v)/(double)npart; //Total energy per particle
+  stima_pot = v/(double)npart; //Potential energy per particle
+  stima_kin = t/(double)npart; //Kinetic energy per particle
+  stima_temp = (2.0 / 3.0) * t/(double)npart; //Temperature
+  stima_etot = (t+v)/(double)npart; //Total energy per particle
 
-    Epot << stima_pot  << endl;
-    Ekin << stima_kin  << endl;
-    Temp << stima_temp << endl;
-    Etot << stima_etot << endl;
+  Epot << stima_pot  << endl;
+  Ekin << stima_kin  << endl;
+  Temp << stima_temp << endl;
+  Etot << stima_etot << endl;
+  
+  Epot.close();
+  Ekin.close();
+  Temp.close();
+  Etot.close();
+  //Gdir.close();
 
-    Epot.close();
-    Ekin.close();
-    Temp.close();
-    Etot.close();
-
-    return;
+  return;
 }
 
 void ConfFinal(void){ //Write the last two configurations

@@ -10,8 +10,10 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 //parameters, observables
 const int m_props=4;
 int n_props;
+const int nbins=100;
 int iv,ik,it,ie;
 double stima_pot, stima_kin, stima_etot, stima_temp;
+double g_r[nbins];
 
 // averages
 double acc,att;
@@ -28,7 +30,7 @@ double energy,temp,vol,rho,box,rcut;
 // simulation
 bool improved_mode;
 int nstep, iprint, seed;
-double delta;
+double delta, bin_size;
 
 //functions
 void Input(void);
