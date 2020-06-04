@@ -1,0 +1,23 @@
+32
+20
+100000
+0.5
+0.08 
+0.08
+0.1
+0.1
+0.1
+0
+10
+		>> number of cities (genes)
+		>> initial temperature
+		>> number of generations
+		>> crossover probability
+		>> pm1 - single site
+		>> pm2 - double site
+		>> pm3 - inversion of 3/4 genes
+		>> pm4 - traslation of 3-genes
+		>> pm5 - push 3/4 initial genes to the end
+		>> if 0 cities placed on a circumference, else inside a square
+		>> radius of the circumferenze / semi-lenght of the edge of the square
+

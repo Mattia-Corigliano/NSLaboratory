@@ -1,0 +1,29 @@
+32
+1000
+2000
+20
+30
+0.6
+0.01
+0.01
+0.01
+0.01
+0.01
+1
+10
+		>> number of cities (genes)
+		>> number of paths (chromosomes)
+		>> number of generations
+		>> migration step
+		>> number of elite
+		>> crossover probability
+		>> pm1 - single site
+		>> pm2 - double site
+		>> pm3 - inversion of 3/4 genes
+		>> pm4 - traslation of 3-genes
+		>> pm5 - push 3/4 initial genes to the end
+		>> if 0 cities placed on a circumference, else inside a square
+		>> radius of the circumferenze / semi-lenght of the edge of the square
+
+
+
