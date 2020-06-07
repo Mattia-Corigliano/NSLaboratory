@@ -1,6 +1,0 @@
-./clean.sh
-cp config.last config.0
-cp config.second_last old.0
-g++ -c MolDyn_NVE.cpp -o MolDyn_NVE.o
-g++ MolDyn_NVE.o -o MolDyn_NVE.exe
-
