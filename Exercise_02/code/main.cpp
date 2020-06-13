@@ -119,6 +119,7 @@ int main (){
 	double position_step=1.;
 	vector<double> position_lattice(3*(n_steps+1)*n_walkers, 0.);
 	vector<double> position_continuum(3*(n_steps+1)*n_walkers, 0.);
+	
 	for(int walker=0; walker<n_walkers; walker++){
 		int x=0, y=0, z=0;
 		double x2=0, y2=0, z2=0;
@@ -156,39 +157,58 @@ int main (){
 			position_continuum[3*step+2+3*(n_steps+1)*walker]=z2;
 		}
 	}
+
 	for(int i=0; i<int(position_lattice.size()); i++){
 		output3<<position_lattice[i]<<endl;
 		output4<<position_continuum[i]<<endl;
 	}
 
-	vector<double> squared_distance(n_walkers*(n_steps+1), 0.);
-	vector<double> squared_distance2(n_walkers*(n_steps+1), 0.);
-	for(int i=0; i<int(position_lattice.size()); i=i+3){
-		squared_distance[i/3] = position_lattice[i]*position_lattice[i]+position_lattice[i+1]*position_lattice[i+1]+position_lattice[i+2]*position_lattice[i+2];
-		squared_distance2[i/3] = position_continuum[i]*position_continuum[i]+position_continuum[i+1]*position_continuum[i+1]+position_continuum[i+2]*position_continuum[i+2];
-	}
-	for(int i=0; i<n_steps+1; i++){
-		double mean =0., mean2=0., error=0.;
-		double mean_2=0., mean2_2=0., error2=0.;
-		for(int walker=0; walker<n_walkers; walker++){
-			mean = mean + squared_distance[i+101*walker]/n_walkers;
-			mean2 = mean2+squared_distance[i+101*walker]*squared_distance[i+101*walker]/n_walkers;
-			mean_2 = mean_2 + squared_distance2[i+101*walker]/n_walkers;
-			mean2_2 = mean2_2+squared_distance2[i+101*walker]*squared_distance2[i+101*walker]/n_walkers;
+	//data-blocking measurement of rn2
+	N_blocks=100;
+	int tot = int(n_walkers/N_blocks);
+	for(int k=0; k<n_steps+1; k++){
+		// evaluate average in each block
+		int partial = 0;
+		vector<double> MSD(N_blocks, 0.);
+		vector<double> MSD2(N_blocks, 0.);
+		int iblock = 0;
+		for(int j=0; j<n_walkers; j++){
+			double temp_msd = pow(position_lattice[3*k+303*j], 2) + pow(position_lattice[3*k+303*j+1],2) + pow(position_lattice[3*k+303*j+2], 2);
+			double temp_msd2 = pow(position_continuum[3*k+303*j], 2) + pow(position_continuum[3*k+303*j+1],2)+pow(position_continuum[3*k+303*j+2], 2);
+			MSD[iblock] = MSD[iblock] + temp_msd/tot;
+			MSD2[iblock] = MSD2[iblock] + temp_msd2/tot;
+			partial++;
+			if(partial == tot){
+				partial =0;
+				//cout << MSD[iblock] << endl;
+				iblock++;
+			}
 		}
-		error = sqrt((mean2-mean*mean)/(n_walkers-1));
-		error2 = sqrt((mean2_2-mean_2*mean_2)/(n_walkers-1));
-		if(i==0 || i==1){
-			error = 0.;
-			error2 = 0.;
-		}
-		else{
-			error = error/(2*sqrt(mean));
-			error2 = error2/(2*sqrt(mean_2));
-		}
-		output5 << i<< setw(15) << sqrt(mean) << setw(15) << sqrt(mean_2) << setw(15) << error<< setw(15) << error2 <<endl;
-	}
 	
+		// perform data-blocking
+		for(int i=0; i<N_blocks; i++){
+			double mean =0., mean2=0., error=0.;
+			double mean_2=0., mean2_2=0., error2=0.;
+			for(int l=0; l<i+1; l++){
+				mean = mean + MSD[l]/(i+1);
+				mean2 = mean2 + MSD[l]*MSD[l]/(i+1);
+				mean_2 = mean_2 + MSD2[l]/(i+1);
+				mean2_2 = mean2_2 + MSD2[l]*MSD2[l]/(i+1);
+			}
+			if(i==0 || i==1){
+				error = 0.;
+				error2 = 0.;
+			}
+			else{
+				error = sqrt((mean2-mean*mean)/i);
+				error2 = sqrt((mean2_2-mean_2*mean_2)/i);
+			}
+			if(i==N_blocks-1)
+				output5 << k<< setw(15) << sqrt(mean) << setw(15) << sqrt(mean_2) << setw(15) << error<< setw(15) << error2 <<endl;
+		}
+		
+	}
+		
 	output.close();
 	output2.close();
 	output3.close();
