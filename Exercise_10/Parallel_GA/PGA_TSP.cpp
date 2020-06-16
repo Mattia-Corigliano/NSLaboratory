@@ -35,25 +35,28 @@ int main (int argc, char* argv[]){
 	Input(); //initialing variables for all cores
 
 	//Export_CitiesConfig();
-
-	if(core == 0){
+	/*
+	if(core == 2){
 		cout << "VISUALIZING CORE " <<core << endl << endl;
 		cout << "Generation "<<0<< endl;
 	}
+	*/
 	Generate_Tours();
 	Check();
 	Sort_by_DecrFitness();
-	if(core == 0)
+	/*
+	if(core == 2)
 		Get_OptimalSolution();
-	
+	*/
 	Export_OptimalLenght(0);
 	//Export_Tour();
 
 	//cycle over generations
 	for(int k=1; k<=gen; k++){
-		if(core == 0)
+		/*
+		if(core == 2)
 			cout << endl << "Generation "<<k<< ":" << endl;
-		
+		*/
 		Get_Elite();		
 		Select_Parents();
 		CrossOver();
@@ -66,18 +69,24 @@ int main (int argc, char* argv[]){
 		//performing migration of the best solutions between cores
 		if(k%migration_step == 0)
 			Migrate();
-
-		if(core == 0)
+		/*
+		if(core == 2)
 			Get_OptimalSolution();
-		
+		*/
 		Export_OptimalLenght(k);
 		
 		//Export_CostFunction(k);
-		if(k==gen)
+		if(k==gen){
 			Export_OptimalTour();
-
-		if(core == 0)
+			for(int k=0; k<4; k++){
+				if(core==k)
+					cout << Eval_TourLenght(tour[0]) << endl;
+			}
+		}
+		/*
+		if(core == 2)
 			cout << endl;
+		*/
 	}
 
 	MPI_Finalize();
@@ -521,6 +530,11 @@ void Migrate(){
 		migrant_tour[3] = copy_migrant_tour[0]; //1-->4
 	}
 
+	for(int k=0; k<4; k++){
+		if(core == k)
+			tour[0] = migrant_tour[k];
+	}
+	
 	Sort_by_DecrFitness();
 }
 
