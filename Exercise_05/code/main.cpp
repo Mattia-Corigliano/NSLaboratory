@@ -50,14 +50,14 @@ int main (){
         //*******
 
 	//initializing output files
-	//ofstream output("output_uniform.txt");
-	//ofstream output2("output2_uniform.txt");
-	//ofstream output3("output3_uniform.txt");
-	//ofstream output4("output4_uniform.txt");
-	ofstream output("output_gaussian.txt");
-	ofstream output2("output2_gaussian.txt");
-	ofstream output3("output3_gaussian.txt");
-	ofstream output4("output4_gaussian.txt");
+	ofstream output("output_uniform.txt");
+	ofstream output2("output2_uniform.txt");
+	ofstream output3("output3_uniform.txt");
+	ofstream output4("output4_uniform.txt");
+	//ofstream output("output_gaussian.txt");
+	//ofstream output2("output2_gaussian.txt");
+	//ofstream output3("output3_gaussian.txt");
+	//ofstream output4("output4_gaussian.txt");
 //***********************************ESERCIZIO 5.1*********************************************************
 // parameters
 	int M = 1E6; //number of steps
@@ -81,17 +81,17 @@ int main (){
 		delta = delta+0.001;
 		double f = 0.;
 		//setting the initial position in 3d space
-		r1s[0] = 0.; //x_0
-		r1s[1] = 0.; //y_0
-		r1s[2] = 0.; //z_0
+		r1s[0] = 10.; //x_0
+		r1s[1] = 10.; //y_0
+		r1s[2] = 10.; //z_0
 		
 		for(int i=1; i<M; i++){
-			//double x = r1s[3*(i-1)] + rnd.Rannyu(-delta, delta);
-			//double y = r1s[3*(i-1)+1] + rnd.Rannyu(-delta, delta);
-			//double z =  r1s[3*(i-1)+2] + rnd.Rannyu(-delta, delta);
-			double x = rnd.Gauss(r1s[3*(i-1)], delta);
-			double y = rnd.Gauss(r1s[3*(i-1)+1], delta);
-			double z = rnd.Gauss(r1s[3*(i-1)+2], delta);
+			double x = r1s[3*(i-1)] + rnd.Rannyu(-delta, delta);
+			double y = r1s[3*(i-1)+1] + rnd.Rannyu(-delta, delta);
+			double z =  r1s[3*(i-1)+2] + rnd.Rannyu(-delta, delta);
+			//double x = rnd.Gauss(r1s[3*(i-1)], delta);
+			//double y = rnd.Gauss(r1s[3*(i-1)+1], delta);
+			//double z = rnd.Gauss(r1s[3*(i-1)+2], delta);
 
 			transition_accepted = accept_reject1(x, y, z, r1s[3*(i-1)], r1s[3*(i-1)+1], r1s[3*(i-1)+2], rnd);
 			if(transition_accepted == true){
@@ -121,17 +121,17 @@ int main (){
 		delta = delta+0.005;
 		double f = 0.;
 		//setting the initial position in 3d space
-		r2p[0] = 0.; //x_0
-		r2p[1] = 0.; //y_0
-		r2p[2] = 0.; //z_0
+		r2p[0] = 10.; //x_0
+		r2p[1] = 10.; //y_0
+		r2p[2] = 10.; //z_0
 		
 		for(int i=1; i<M; i++){
-			//double x = r2p[3*(i-1)] + rnd.Rannyu(-delta, delta);
-			//double y = r2p[3*(i-1)+1] + rnd.Rannyu(-delta, delta);
-			//double z =  r2p[3*(i-1)+2] + rnd.Rannyu(-delta, delta);
-			double x = rnd.Gauss(r2p[3*(i-1)], delta);
-			double y = rnd.Gauss(r2p[3*(i-1)+1], delta);
-			double z = rnd.Gauss(r2p[3*(i-1)+2], delta);
+			double x = r2p[3*(i-1)] + rnd.Rannyu(-delta, delta);
+			double y = r2p[3*(i-1)+1] + rnd.Rannyu(-delta, delta);
+			double z =  r2p[3*(i-1)+2] + rnd.Rannyu(-delta, delta);
+			//double x = rnd.Gauss(r2p[3*(i-1)], delta);
+			//double y = rnd.Gauss(r2p[3*(i-1)+1], delta);
+			//double z = rnd.Gauss(r2p[3*(i-1)+2], delta);
 			transition_accepted = accept_reject2(x, y, z, r2p[3*(i-1)], r2p[3*(i-1)+1], r2p[3*(i-1)+2], rnd);
 			if(transition_accepted == true){
 				f++;
