@@ -1,6 +1,0 @@
-
-
-Notebook 1: mettere a posto ultima parte
-Notebook 2: aggiungere calcolo errori col datablocking
-Notebook 3: aggiornare commenti
-Notebook 4: mettere a posto
